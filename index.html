@@ -98,7 +98,14 @@ html[data-design="aurora"] .switch button.on{background:linear-gradient(135deg,#
     <button class="t" data-t="txt"><span class="i">📄</span><b>Text</b><small>.txt</small></button>
     <button class="t" data-t="html"><span class="i">🌐</span><b>HTML</b><small>.html</small></button>
     <button class="t" data-t="csv"><span class="i">🧾</span><b>CSV</b><small>.csv</small></button>
-    <button class="t" data-t="jpg"><span class="i">🖼️</span><b>Images</b><small>PDF → JPG</small></button>
+    <button class="t" data-t="md"><span class="i">📘</span><b>Markdown</b><small>.md</small></button>
+    <button class="t" data-t="json"><span class="i">🧮</span><b>JSON</b><small>.json</small></button>
+    <button class="t" data-t="jpg"><span class="i">🖼️</span><b>JPG</b><small>PDF / photo</small></button>
+    <button class="t" data-t="png"><span class="i">🌄</span><b>PNG</b><small>PDF / photo</small></button>
+    <button class="t" data-t="webp"><span class="i">🌐</span><b>WebP</b><small>PDF / photo</small></button>
+    <button class="t" data-t="cpdf"><span class="i">🗜️</span><b>Compress PDF</b><small>smaller file</small></button>
+    <button class="t" data-t="rot"><span class="i">🔄</span><b>Rotate PDF</b><small>turn 90°</small></button>
+    <button class="t" data-t="cimg"><span class="i">📉</span><b>Shrink photo</b><small>smaller size</small></button>
     <button class="t" data-t="pdf"><span class="i">📷</span><b>Photo → PDF</b><small>pictures to PDF</small></button>
     <button class="t" data-t="docx"><span class="i">🖼️</span><b>Photo → Word</b><small>pictures to .docx</small></button>
     <button class="t" data-t="pptx"><span class="i">🎞️</span><b>Photo → Slides</b><small>pictures to .pptx</small></button>
@@ -134,7 +141,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/p
 const $=s=>document.querySelector(s);
 const drop=$('#drop'),input=$('#file'),list=$('#list'),actions=$('#actions');
 let target='docx';
-const NAMES={docx:'Word',pdf:'PDF',xlsx:'Excel',pptx:'PowerPoint',txt:'Text',html:'HTML',csv:'CSV',img:'Image',jpg:'JPG images',merge:'Merged PDF',split:'Split PDF'};
+const NAMES={docx:'Word',pdf:'PDF',xlsx:'Excel',pptx:'PowerPoint',txt:'Text',html:'HTML',csv:'CSV',img:'Image',jpg:'JPG',png:'PNG',webp:'WebP',md:'Markdown',json:'JSON',cpdf:'Compress PDF',rot:'Rotate PDF',cimg:'Shrink photo',merge:'Merged PDF',split:'Split PDF'};
 document.querySelectorAll('.t').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.t').forEach(x=>x.classList.remove('on'));b.classList.add('on');target=b.dataset.t;
 });
@@ -193,7 +200,7 @@ async function handle(files){
   }
 }
 
-const MIME={pdf:'application/pdf',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',txt:'text/plain',html:'text/html',csv:'text/csv',zip:'application/zip',jpg:'image/jpeg'};
+const MIME={pdf:'application/pdf',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',txt:'text/plain',html:'text/html',csv:'text/csv',zip:'application/zip',jpg:'image/jpeg',png:'image/png',webp:'image/webp',md:'text/markdown',json:'application/json'};
 function finish(li,blob,name,label,warn){
   const type=MIME[name.split('.').pop().toLowerCase()]||blob.type;
   blob=new Blob([blob],{type});
@@ -263,18 +270,68 @@ async function splitPdf(file,prog){
   return {blob:await zip.generateAsync({type:'blob'}),name:base+'-pages.zip',label:`PDF → ${n} single-page PDFs (ZIP)`};
 }
 
-async function pdfToImages(file,prog){
+async function pdfToImages(file,prog,fmt='jpg'){const mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp'}[fmt];
   const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,base=baseName(file),blobs=[];
   for(let p=1;p<=pdf.numPages;p++){
     prog(.9*p/pdf.numPages,`Page ${p} of ${pdf.numPages}…`);
     const page=await pdf.getPage(p),vp=page.getViewport({scale:2}),c=document.createElement('canvas');
     c.width=vp.width;c.height=vp.height;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
     await page.render({canvasContext:x,viewport:vp}).promise;
-    blobs.push(await new Promise(r=>c.toBlob(r,'image/jpeg',.92)));
+    blobs.push(await new Promise(r=>c.toBlob(r,mime,.92)));
   }
-  if(blobs.length===1)return {blob:blobs[0],name:base+'.jpg',label:'PDF → JPG'};
-  const zip=new JSZip();blobs.forEach((b,i)=>zip.file(`${base}-page-${i+1}.jpg`,b));
-  return {blob:await zip.generateAsync({type:'blob'}),name:base+'-pages.zip',label:`PDF → ${blobs.length} JPG images (ZIP)`};
+  const F=fmt.toUpperCase();
+  if(blobs.length===1)return {blob:blobs[0],name:base+'.'+fmt,label:'PDF → '+F};
+  const zip=new JSZip();blobs.forEach((b,i)=>zip.file(`${base}-page-${i+1}.${fmt}`,b));
+  return {blob:await zip.generateAsync({type:'blob'}),name:base+'-pages.zip',label:`PDF → ${blobs.length} ${F} images (ZIP)`};
+}
+
+/* ---- extra file tools ---- */
+function imgCanvas(file,max,bg){return new Promise((res,rej)=>{
+  const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{
+    let w=im.naturalWidth,h=im.naturalHeight;
+    if(max&&Math.max(w,h)>max){const r=max/Math.max(w,h);w=Math.round(w*r);h=Math.round(h*r)}
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+    if(bg){x.fillStyle=bg;x.fillRect(0,0,w,h)}
+    x.drawImage(im,0,0,w,h);URL.revokeObjectURL(u);res(c)};
+  im.onerror=()=>rej(new Error('Could not read image'));im.src=u})}
+const canvasBlob=(c,type,q)=>new Promise(r=>c.toBlob(r,type,q));
+
+async function reencodeImage(file,fmt){
+  const mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp'}[fmt];
+  const c=await imgCanvas(file,0,fmt==='jpg'?'#fff':null);
+  const blob=await canvasBlob(c,mime,.92);
+  return {blob,name:baseName(file)+'.'+fmt,label:`Photo → ${fmt.toUpperCase()}`};
+}
+
+async function shrinkImage(file){
+  const c=await imgCanvas(file,1600,'#fff');
+  const blob=await canvasBlob(c,'image/jpeg',.75);
+  if(blob.size>=file.size)return {blob:file,name:file.name,label:'Already small, kept as it is'};
+  return {blob,name:baseName(file)+'-small.jpg',label:`Photo ${kb(file.size)} → ${kb(blob.size)}`};
+}
+
+async function rotatePdf(file,prog){
+  const {PDFDocument,degrees}=PDFLib,d=await PDFDocument.load(await file.arrayBuffer(),{ignoreEncryption:true});
+  d.getPages().forEach(p=>p.setRotation(degrees((p.getRotation().angle+90)%360)));
+  prog(.9);
+  return {blob:new Blob([await d.save()],{type:'application/pdf'}),name:baseName(file)+'-rotated.pdf',label:'PDF turned 90° clockwise'};
+}
+
+async function compressPdf(file,prog){
+  const src=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  const {PDFDocument}=PDFLib,out=await PDFDocument.create();
+  for(let p=1;p<=src.numPages;p++){
+    prog(.9*p/src.numPages,`Page ${p} of ${src.numPages}…`);
+    const page=await src.getPage(p),v1=page.getViewport({scale:1}),v=page.getViewport({scale:1.5}),c=document.createElement('canvas');
+    c.width=v.width;c.height=v.height;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:x,viewport:v}).promise;
+    const im=await out.embedJpg(await (await canvasBlob(c,'image/jpeg',.6)).arrayBuffer());
+    out.addPage([v1.width,v1.height]).drawImage(im,{x:0,y:0,width:v1.width,height:v1.height});
+  }
+  const blob=new Blob([await out.save()],{type:'application/pdf'});
+  if(blob.size>=file.size)return {blob:file,name:file.name,label:'Already small, kept as it is'};
+  return {blob,name:baseName(file)+'-small.pdf',label:`PDF ${kb(file.size)} → ${kb(blob.size)} (pages become images)`};
 }
 
 async function convert(file,li,to){
@@ -284,9 +341,19 @@ async function convert(file,li,to){
   if(/\.(doc|ppt)$/i.test(file.name))throw new Error('Old format, save as .docx/.pptx first');
   if(!from)throw new Error('Unsupported file type');
   if(from===to)throw new Error(`Already a ${NAMES[to]} file, pick a different target`);
-  if(to==='split'||to==='jpg'){
+  if(to==='split'||to==='rot'||to==='cpdf'){
     if(from!=='pdf')throw new Error(`${NAMES[to]} works on PDF files only`);
-    const r=await (to==='split'?splitPdf:pdfToImages)(file,prog);
+    const r=await ({split:splitPdf,rot:rotatePdf,cpdf:compressPdf})[to](file,prog);
+    return finish(li,r.blob,r.name,r.label);
+  }
+  if(to==='jpg'||to==='png'||to==='webp'){
+    if(from!=='pdf'&&from!=='img')throw new Error(`${NAMES[to]} works on PDF files and photos only`);
+    const r=from==='pdf'?await pdfToImages(file,prog,to):await reencodeImage(file,to);
+    return finish(li,r.blob,r.name,r.label);
+  }
+  if(to==='cimg'){
+    if(from!=='img')throw new Error('Shrink photo works on photos only');
+    const r=await shrinkImage(file);
     return finish(li,r.blob,r.name,r.label);
   }
   if(from==='img'&&!['pdf','pptx','docx','html'].includes(to))throw new Error('Photos can become PDF, PowerPoint, Word or HTML (or use Merge PDF)');
@@ -592,6 +659,41 @@ writers.csv=async model=>{
     else if(b.t!=='img')rows.push([b.x]);
   }});
   return new Blob(['﻿'+rows.map(r=>r.map(esc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+};
+
+// ---- Markdown
+writers.md=async model=>{
+  const esc=c=>String(c).replace(/\|/g,'\\|').replace(/\s*\n\s*/g,' ');
+  const parts=[];
+  model.forEach(s=>{
+    const out=[];
+    for(const b of s.blocks){
+      if(b.t==='h')out.push('#'.repeat(b.l)+' '+b.x);
+      else if(b.t==='p')out.push(/^[•●▪◦]\s/.test(b.x)?'- '+b.x.slice(2):b.x);
+      else if(b.t==='tbl'){
+        const r=norm(b.rows);
+        out.push('| '+r[0].map(esc).join(' | ')+' |\n|'+r[0].map(()=>' --- ').join('|')+'|'+r.slice(1).map(x=>'\n| '+x.map(esc).join(' | ')+' |').join(''));
+      }
+    }
+    if(out.length)parts.push(out.join('\n\n'));
+  });
+  return new Blob([parts.join('\n\n---\n\n')],{type:'text/markdown;charset=utf-8'});
+};
+
+// ---- JSON
+writers.json=async model=>{
+  const data=model.filter(s=>s.blocks.length).map(s=>{
+    const content=[];
+    for(const b of s.blocks){
+      if(b.t==='tbl'){
+        const r=norm(b.rows),h=r[0].map((x,i)=>String(x||'column'+(i+1)));
+        content.push({type:'table',rows:r.slice(1).map(row=>Object.fromEntries(h.map((k,i)=>[k,row[i]])))});
+      }else if(b.t==='h')content.push({type:'heading',level:b.l,text:b.x});
+      else if(b.t==='p')content.push({type:'text',text:b.x});
+    }
+    return {name:s.name,content};
+  });
+  return new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
 };
 
 // ---- PowerPoint (designed theme: cover, accent stripe, bullets, styled tables, photo slides)
