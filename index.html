@@ -73,6 +73,19 @@ html[data-design="aurora"] .bar{background:rgba(255,255,255,.15)}
 html[data-design="aurora"] .bar i{background:linear-gradient(90deg,#7c3aed,#06b6d4)}
 html[data-design="aurora"] li.done .bar i{background:linear-gradient(90deg,#34d399,#67e8f9)}
 
+/* ---------- OCR ---------- */
+#ocrOpts{margin:-8px 0 18px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--mute)}
+#ocrOpts[hidden]{display:none}
+#ocrOpts select{background:rgba(255,255,255,.1);color:inherit;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit}
+html[data-design="aurora"] #ocrOpts{color:rgba(255,255,255,.75)}
+html[data-design="aurora"] #ocrOpts select{color:#fff;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25)}
+html[data-design="aurora"] #ocrOpts select option{color:#111}
+.ocrbox{flex:1 1 100%;display:grid;gap:10px;margin-top:4px}
+.ocrbox textarea{width:100%;min-height:170px;resize:vertical;border-radius:12px;padding:12px 14px;font:16px/1.6 system-ui,'Segoe UI',Tahoma,Arial,sans-serif;
+  background:var(--card);color:var(--text);border:1px solid var(--line)}
+html[data-design="aurora"] .ocrbox textarea{background:rgba(0,0,0,.28);color:#fff;border-color:rgba(255,255,255,.2)}
+.ocrbox .acts{justify-content:flex-start}
+
 /* ---------- 3D ---------- */
 #hero{position:absolute;inset:0;width:100%;height:100%;display:none;cursor:grab;touch-action:pan-y}
 #hero:active{cursor:grabbing}
@@ -165,6 +178,18 @@ html[data-design="aurora"] .switch button.on{background:linear-gradient(135deg,#
     <button class="t" data-t="pptx"><span class="i">🎞️</span><b>Photo → Slides</b><small>pictures to .pptx</small></button>
     <button class="t" data-t="merge"><span class="i">🧩</span><b>Merge PDF</b><small>many → one</small></button>
     <button class="t" data-t="split"><span class="i">✂️</span><b>Split PDF</b><small>page by page</small></button>
+    <button class="t" data-t="ocr"><span class="i">🔎</span><b>Read text (OCR)</b><small>Arabic · English</small></button>
+  </div>
+  <div id="ocrOpts" hidden>
+    <label for="ocrLang">Language in the picture:</label>
+    <select id="ocrLang">
+      <option value="auto">Auto (Arabic or English)</option>
+      <option value="ara">Arabic only</option>
+      <option value="ara+eng">Arabic + English mixed in one picture</option>
+      <option value="eng">English only</option>
+      <option value="ckb">Kurdish Sorani (Arabic script, کوردی)</option>
+      <option value="kmr+eng">Kurdish Kurmanji (Latin script) + English</option>
+    </select>
   </div>
 
   <p class="label">2 · Add files</p>
@@ -189,6 +214,7 @@ html[data-design="aurora"] .switch button.on{background:linear-gradient(135deg,#
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -196,7 +222,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/p
 const $=s=>document.querySelector(s);
 const drop=$('#drop'),input=$('#file'),list=$('#list'),actions=$('#actions');
 let target='docx';
-const NAMES={docx:'Word',pdf:'PDF',xlsx:'Excel',pptx:'PowerPoint',txt:'Text',html:'HTML',csv:'CSV',img:'Image',jpg:'JPG',png:'PNG',webp:'WebP',md:'Markdown',json:'JSON',cpdf:'Compress PDF',rot:'Rotate PDF',cimg:'Shrink photo',merge:'Merged PDF',split:'Split PDF'};
+const NAMES={docx:'Word',pdf:'PDF',xlsx:'Excel',pptx:'PowerPoint',txt:'Text',html:'HTML',csv:'CSV',img:'Image',jpg:'JPG',png:'PNG',webp:'WebP',md:'Markdown',json:'JSON',cpdf:'Compress PDF',rot:'Rotate PDF',cimg:'Shrink photo',ocr:'OCR text',merge:'Merged PDF',split:'Split PDF'};
 document.querySelectorAll('.t').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.t').forEach(x=>x.classList.remove('on'));b.classList.add('on');target=b.dataset.t;
 });
@@ -389,6 +415,111 @@ function loadImg(file){return new Promise((res,rej)=>{
     res({src:c.toDataURL('image/jpeg',.92),w:c.width,h:c.height})};
   im.onerror=()=>rej(new Error('Could not read image'));im.src=u})}
 
+/* ---- OCR: read Arabic / English text from photos and scanned PDFs, in the browser ---- */
+document.querySelectorAll('.t').forEach(b=>b.addEventListener('click',()=>{$('#ocrOpts').hidden=(target!=='ocr')}));
+
+let ocrWorker=null,ocrKey='',ocrLog=()=>{};
+async function getOcr(lang){
+  if(ocrWorker&&ocrKey===lang)return ocrWorker;
+  if(ocrWorker){try{await ocrWorker.terminate()}catch(e){}ocrWorker=null}
+  ocrWorker=await Tesseract.createWorker(lang.split('+'),1,{logger:m=>ocrLog(m)});
+  ocrKey=lang;return ocrWorker;
+}
+// clean up a picture for better reading: not too big, not too small, grey and contrasty
+function ocrPrep(src){
+  let w=src.width,h=src.height;
+  const up=Math.max(w,h)<700?2:1;
+  const c=document.createElement('canvas');c.width=w*up;c.height=h*up;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+  try{x.filter='grayscale(1) contrast(1.25)'}catch(e){}
+  x.drawImage(src,0,0,c.width,c.height);return c;
+}
+// The Arabic reader writes Arabic letter forms; Sorani uses its own: ی ک ۆ and ە (at the end of words)
+const soraniFix=t=>t.replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/ؤ/g,'ۆ').replace(/[هة](?![؀-ۿ])/g,'ە');
+
+// read as one block of text first (best for most photos); if unsure, also try automatic layout and keep the more confident result
+async function ocrRead(w,canvas){
+  let best=null;
+  for(const psm of ['6','11','3']){        // block of text, sparse text, automatic layout
+    await w.setParameters({tessedit_pageseg_mode:psm});
+    const r=(await w.recognize(canvas)).data;
+    if(!best||r.confidence>best.confidence)best=r;
+    if(best.confidence>=85)break;          // good enough, stop early
+  }
+  return {text:best.text,conf:best.confidence};
+}
+// Auto: try the English and the Arabic reader, keep the one that reads better (the mixed reader is the last resort)
+async function ocrDetect(canvas){
+  let best=null;
+  for(const l of ['eng','ara']){const r=await ocrRead(await getOcr(l),canvas);if(!best||r.conf>best.conf)best={...r,l}}
+  if(best.conf<70){const r=await ocrRead(await getOcr('ara+eng'),canvas);if(r.conf>best.conf)best={...r,l:'ara+eng'}}
+  return best;
+}
+async function ocrFile(file,li,from){
+  const small=li.querySelector('small'),bar=li.querySelector('.bar i');
+  const sel=$('#ocrLang').value,lang=sel==='ckb'?'ara':sel;   // Sorani: Arabic reader + Sorani letter fixes below
+  let idx=0,total=1;
+  ocrLog=m=>{
+    if(m.status==='recognizing text'){bar.style.width=Math.round((idx+m.progress)/total*95)+'%';small.textContent=total>1?`Reading text… page ${idx+1} of ${total}`:'Reading text…'}
+    else if(m.status&&m.progress!==undefined){small.textContent=m.status.charAt(0).toUpperCase()+m.status.slice(1)+'…'}
+  };
+  small.textContent='Loading the reader and language data (first time takes a little while)…';
+  let chosen=sel==='auto'?null:lang;const texts=[];
+  const readOne=async canvas=>{
+    if(!chosen){const b=await ocrDetect(canvas);chosen=b.l;return b.text}   // Auto: decided on the first page / picture
+    return (await ocrRead(await getOcr(chosen),canvas)).text;
+  };
+  if(from==='img'){
+    texts.push(await readOne(ocrPrep(await imgCanvas(file,3000,'#fff'))));
+  }else{
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;total=pdf.numPages;
+    for(idx=0;idx<total;idx++){
+      const page=await pdf.getPage(idx+1),vp=page.getViewport({scale:2.2}),c=document.createElement('canvas');
+      c.width=vp.width;c.height=vp.height;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+      await page.render({canvasContext:x,viewport:vp}).promise;
+      texts.push(await readOne(ocrPrep(c)));
+    }
+  }
+  let text=texts.map(t=>t.trim()).filter(Boolean).join('\n\n');
+  if(!text)throw new Error('No text found. Try a clearer, straighter picture.');
+  if(sel==='ckb')text=soraniFix(text);
+  showOcrResult(li,file,text);
+}
+
+function downloadBlob(blob,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+async function ocrDocx(text){
+  const {Document,Packer,Paragraph,TextRun}=docx;
+  const isAr=s=>(s.match(/[؀-ۿ]/g)||[]).length>(s.match(/[A-Za-z]/g)||[]).length;
+  const paras=text.split(/\n\s*\n/).map(p=>p.split('\n').map(l=>l.trim()).filter(Boolean)).filter(l=>l.length);
+  const children=paras.map(lines=>{
+    const avg=lines.reduce((n,l)=>n+l.length,0)/lines.length;
+    const parts=avg>45?[lines.join(' ')]:lines;      // flowing text joins lines, short lines keep their breaks
+    const ar=isAr(parts.join(' '));
+    return new Paragraph({bidirectional:ar,spacing:{after:160},
+      children:parts.map((t,i)=>new TextRun({text:t,break:i?1:undefined,rightToLeft:ar,font:ar?'Arial':'Calibri',size:24}))});
+  });
+  return Packer.toBlob(new Document({sections:[{children}]}));
+}
+function showOcrResult(li,file,text){
+  try{window.heroBurst&&window.heroBurst()}catch(e){}
+  li.classList.add('done');li.querySelector('.bar i').style.width='100%';
+  li.querySelector('small').textContent=`Text found (${text.length} characters). Fix anything below, then export.`;
+  const box=document.createElement('div');box.className='ocrbox';
+  const ta=document.createElement('textarea');ta.value=text;ta.dir='auto';ta.spellcheck=false;
+  const acts=document.createElement('div');acts.className='acts';
+  const mk=(label,fn)=>{const a=document.createElement('a');a.className='btn';a.href='#';a.setAttribute('role','button');a.textContent=label;
+    a.onclick=async e=>{e.preventDefault();await fn(a)};acts.appendChild(a)};
+  mk('Download Word',async()=>downloadBlob(await ocrDocx(ta.value),baseName(file)+'.docx'));
+  mk('Download .txt',async()=>downloadBlob(new Blob([ta.value],{type:'text/plain;charset=utf-8'}),baseName(file)+'.txt'));
+  mk('Copy',async a=>{
+    try{await navigator.clipboard.writeText(ta.value)}catch(e){ta.select();document.execCommand('copy')}
+    a.textContent='Copied ✓';setTimeout(()=>a.textContent='Copy',1500);
+  });
+  box.append(ta,acts);li.appendChild(box);
+}
+
 async function mergeFiles(files,li){
   const prog=(f,m)=>{li.querySelector('.bar i').style.width=Math.round(f*100)+'%';if(m)li.querySelector('small').textContent=m};
   const {PDFDocument}=PDFLib,out=await PDFDocument.create();
@@ -490,6 +621,10 @@ async function convert(file,li,to){
   if(/\.(doc|ppt)$/i.test(file.name))throw new Error('Old format, save as .docx/.pptx first');
   if(!from)throw new Error('Unsupported file type');
   if(from===to)throw new Error(`Already a ${NAMES[to]} file, pick a different target`);
+  if(to==='ocr'){
+    if(from!=='img'&&from!=='pdf')throw new Error('Read text (OCR) works on photos and scanned PDFs');
+    return ocrFile(file,li,from);
+  }
   if(to==='split'||to==='rot'||to==='cpdf'){
     if(from!=='pdf')throw new Error(`${NAMES[to]} works on PDF files only`);
     const r=await ({split:splitPdf,rot:rotatePdf,cpdf:compressPdf})[to](file,prog);
