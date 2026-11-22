@@ -26,7 +26,9 @@ p.sub{color:var(--mute);margin:0 0 20px}
 .ico{font-size:40px;margin-bottom:6px}
 ul{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px}
 li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px}
-li .name{flex:1;min-width:0}
+li{flex-wrap:wrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+li .name{flex:1;min-width:140px}
 li .name div:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 li .name small{color:var(--mute)}
 li .name small.warn{display:block;color:var(--warn)}
@@ -41,7 +43,7 @@ button.t.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,
 .row{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
 .note{color:var(--mute);font-size:13px;margin-top:20px;text-align:center}
 .powered{margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--mute);font-size:13px}
-.powered .brand{font-size:34px;font-weight:800;letter-spacing:.02em;color:var(--text);line-height:1}
+.powered .brand{font-size:16px;font-weight:700;letter-spacing:.04em;color:var(--text);line-height:1}
 html[data-design="aurora"] .powered{color:rgba(255,255,255,.65)}
 html[data-design="aurora"] .powered .brand{background:linear-gradient(90deg,#c4b5fd,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}
 
@@ -191,7 +193,10 @@ async function handle(files){
   }
 }
 
+const MIME={pdf:'application/pdf',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',txt:'text/plain',html:'text/html',csv:'text/csv',zip:'application/zip',jpg:'image/jpeg'};
 function finish(li,blob,name,label,warn){
+  const type=MIME[name.split('.').pop().toLowerCase()]||blob.type;
+  blob=new Blob([blob],{type});
   const small=li.querySelector('small');
   li.querySelector('.bar i').style.width='100%';li.classList.add('done');
   small.textContent=`${label} · ${kb(blob.size)}`;
@@ -200,8 +205,19 @@ function finish(li,blob,name,label,warn){
     w.textContent='⚠ Some non-Latin characters (e.g. Arabic) may not show in PDF output';
     small.after(w);
   }
+  const acts=document.createElement('div');acts.className='acts';
   const a=document.createElement('a');a.className='btn';a.href=URL.createObjectURL(blob);a.download=name;a.textContent='Download';
-  li.appendChild(a);a.click();
+  acts.appendChild(a);
+  const file=new File([blob],name,{type});
+  let canShare=false;try{canShare=!!(navigator.canShare&&navigator.canShare({files:[file]}))}catch(e){}
+  if(canShare){
+    const s=document.createElement('a');s.className='btn';s.href='#';s.setAttribute('role','button');s.textContent='Save / Open';
+    s.onclick=e=>{e.preventDefault();navigator.share({files:[file],title:name}).catch(()=>{})};
+    acts.appendChild(s);
+  }
+  li.appendChild(acts);
+  // phones block automatic downloads, so only auto-download on desktop
+  if(!matchMedia('(pointer:coarse)').matches)a.click();
 }
 const hasNonLatin=m=>/[^\u0000-ÿ‘-”•–—…]/.test(JSON.stringify(m.map(s=>({n:s.name,b:s.blocks.filter(b=>b.t!=='img')}))));
 const baseName=f=>f.name.replace(/\.[^.]+$/,'');
