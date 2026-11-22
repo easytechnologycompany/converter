@@ -213,15 +213,14 @@ function finish(li,blob,name,label,warn){
   li.appendChild(acts);
   const touch=matchMedia('(pointer:coarse)').matches;
   if(touch){
-    // Phones: Download opens the share sheet (Save to Files), else opens the file so it can be saved from the viewer
-    a.onclick=async e=>{
-      e.preventDefault();
-      if(canShare){
-        try{await navigator.share({files:[file],title:name});return}
-        catch(err){if(err&&err.name==='AbortError')return}
-      }
-      if(!window.open(a.href,'_blank'))location.href=a.href;
-    };
+    // Phones: Download = normal browser download (goes to the Downloads folder, no Files app needed)
+    const o=document.createElement('a');o.className='btn';o.href=a.href;o.target='_blank';o.rel='noopener';o.textContent='Open';
+    acts.appendChild(o);
+    if(canShare){
+      const s=document.createElement('a');s.className='btn';s.href='#';s.setAttribute('role','button');s.textContent='Share';
+      s.onclick=e=>{e.preventDefault();navigator.share({files:[file],title:name}).catch(()=>{})};
+      acts.appendChild(s);
+    }
   }else a.click(); // desktop: download straight away
 }
 const hasNonLatin=m=>/[^\u0000-ÿ‘-”•–—…]/.test(JSON.stringify(m.map(s=>({n:s.name,b:s.blocks.filter(b=>b.t!=='img')}))));
