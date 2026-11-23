@@ -137,6 +137,21 @@ html[data-design="aurora"] body::after{transform:translate(calc(var(--px,0)*60px
   html[data-design="aurora"] button.t,html[data-design="aurora"] #drop{transition:none}
 }
 
+/* tabs + top bar */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.topbar .switch{margin-bottom:0}
+.t[hidden]{display:none!important}
+#tabs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding:2px 2px 6px;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+#tabs button{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:9px 16px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;
+  background:transparent;color:var(--mute);border:1px solid var(--line);box-shadow:none}
+#tabs button i{font-style:normal}
+#tabs button.on{background:var(--acc);color:#fff;border-color:transparent}
+html[data-design="aurora"] #tabs button{color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+html[data-design="aurora"] #tabs button.on{background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(124,58,237,.4)}
+html[dir="rtl"] body{font-family:system-ui,'Segoe UI',Tahoma,Arial,sans-serif}
+html[dir="rtl"] .label{letter-spacing:0}
+
 /* design switch */
 .switch{display:flex;gap:6px;margin-bottom:20px}
 .switch button{background:transparent;color:var(--mute);border:1px solid var(--line);padding:6px 14px;font-size:14px;box-shadow:none;border-radius:999px}
@@ -147,8 +162,15 @@ html[data-design="aurora"] .switch button.on{background:linear-gradient(135deg,#
 </head>
 <body>
 <main>
-  <div class="switch" id="designs">
-    <button data-d="aurora" title="Refresh page">↻ Refresh</button>
+  <div class="topbar">
+    <div class="switch" id="designs">
+      <button data-d="aurora" title="Refresh page">↻ Refresh</button>
+    </div>
+    <div class="switch" id="langs">
+      <button data-l="en">EN</button>
+      <button data-l="ar">العربية</button>
+      <button data-l="ku">کوردی</button>
+    </div>
   </div>
   <div class="scene" aria-hidden="true"><canvas id="hero"></canvas><div class="cube">
     <div class="f1">📕</div><div class="f2">📝</div><div class="f3">📊</div><div class="f4">📽️</div><div class="f5">🖼️</div><div class="f6">📄</div>
@@ -157,28 +179,34 @@ html[data-design="aurora"] .switch button.on{background:linear-gradient(135deg,#
   <p class="sub">PDF, Word, Excel, PowerPoint, Text, HTML, CSV and images, convert between them, merge and split PDFs. Everything runs in your browser, your files are never uploaded.</p>
 
   <p class="label">1 · Choose what to do</p>
+  <div id="tabs" role="tablist">
+    <button data-cat="docs" class="on"><i>📄</i><span>Documents</span></button>
+    <button data-cat="photos"><i>🖼️</i><span>Photos</span></button>
+    <button data-cat="pdf"><i>📕</i><span>PDF tools</span></button>
+    <button data-cat="ocr"><i>🔎</i><span>Read text</span></button>
+  </div>
   <div id="targets">
-    <button class="t on" data-t="docx"><span class="i">📝</span><b>Word</b><small>.docx</small></button>
-    <button class="t" data-t="pdf"><span class="i">📕</span><b>PDF</b><small>.pdf</small></button>
-    <button class="t" data-t="xlsx"><span class="i">📊</span><b>Excel</b><small>.xlsx</small></button>
-    <button class="t" data-t="pptx"><span class="i">📽️</span><b>PowerPoint</b><small>.pptx</small></button>
-    <button class="t" data-t="txt"><span class="i">📄</span><b>Text</b><small>.txt</small></button>
-    <button class="t" data-t="html"><span class="i">🌐</span><b>HTML</b><small>.html</small></button>
-    <button class="t" data-t="csv"><span class="i">🧾</span><b>CSV</b><small>.csv</small></button>
-    <button class="t" data-t="md"><span class="i">📘</span><b>Markdown</b><small>.md</small></button>
-    <button class="t" data-t="json"><span class="i">🧮</span><b>JSON</b><small>.json</small></button>
-    <button class="t" data-t="jpg"><span class="i">🖼️</span><b>JPG</b><small>PDF / photo</small></button>
-    <button class="t" data-t="png"><span class="i">🌄</span><b>PNG</b><small>PDF / photo</small></button>
-    <button class="t" data-t="webp"><span class="i">🌐</span><b>WebP</b><small>PDF / photo</small></button>
-    <button class="t" data-t="cpdf"><span class="i">🗜️</span><b>Compress PDF</b><small>smaller file</small></button>
-    <button class="t" data-t="rot"><span class="i">🔄</span><b>Rotate PDF</b><small>turn 90°</small></button>
-    <button class="t" data-t="cimg"><span class="i">📉</span><b>Shrink photo</b><small>smaller size</small></button>
-    <button class="t" data-t="pdf"><span class="i">📷</span><b>Photo → PDF</b><small>pictures to PDF</small></button>
-    <button class="t" data-t="docx"><span class="i">🖼️</span><b>Photo → Word</b><small>pictures to .docx</small></button>
-    <button class="t" data-t="pptx"><span class="i">🎞️</span><b>Photo → Slides</b><small>pictures to .pptx</small></button>
-    <button class="t" data-t="merge"><span class="i">🧩</span><b>Merge PDF</b><small>many → one</small></button>
-    <button class="t" data-t="split"><span class="i">✂️</span><b>Split PDF</b><small>page by page</small></button>
-    <button class="t" data-t="ocr"><span class="i">🔎</span><b>Read text (OCR)</b><small>Arabic · English</small></button>
+    <button class="t on" data-cat="docs" data-t="docx"><span class="i">📝</span><b>Word</b><small>.docx</small></button>
+    <button class="t" data-cat="docs" data-t="pdf"><span class="i">📕</span><b>PDF</b><small>.pdf</small></button>
+    <button class="t" data-cat="docs" data-t="xlsx"><span class="i">📊</span><b>Excel</b><small>.xlsx</small></button>
+    <button class="t" data-cat="docs" data-t="pptx"><span class="i">📽️</span><b>PowerPoint</b><small>.pptx</small></button>
+    <button class="t" data-cat="docs" data-t="txt"><span class="i">📄</span><b>Text</b><small>.txt</small></button>
+    <button class="t" data-cat="docs" data-t="html"><span class="i">🌐</span><b>HTML</b><small>.html</small></button>
+    <button class="t" data-cat="docs" data-t="csv"><span class="i">🧾</span><b>CSV</b><small>.csv</small></button>
+    <button class="t" data-cat="docs" data-t="md"><span class="i">📘</span><b>Markdown</b><small>.md</small></button>
+    <button class="t" data-cat="docs" data-t="json"><span class="i">🧮</span><b>JSON</b><small>.json</small></button>
+    <button class="t" data-cat="photos" data-t="pdf"><span class="i">📷</span><b>Photo → PDF</b><small>pictures to PDF</small></button>
+    <button class="t" data-cat="photos" data-t="docx"><span class="i">🖼️</span><b>Photo → Word</b><small>pictures to .docx</small></button>
+    <button class="t" data-cat="photos" data-t="pptx"><span class="i">🎞️</span><b>Photo → Slides</b><small>pictures to .pptx</small></button>
+    <button class="t" data-cat="photos" data-t="jpg"><span class="i">🖼️</span><b>JPG</b><small>PDF / photo</small></button>
+    <button class="t" data-cat="photos" data-t="png"><span class="i">🌄</span><b>PNG</b><small>PDF / photo</small></button>
+    <button class="t" data-cat="photos" data-t="webp"><span class="i">🌐</span><b>WebP</b><small>PDF / photo</small></button>
+    <button class="t" data-cat="photos" data-t="cimg"><span class="i">📉</span><b>Shrink photo</b><small>smaller size</small></button>
+    <button class="t" data-cat="pdf" data-t="merge"><span class="i">🧩</span><b>Merge PDF</b><small>many → one</small></button>
+    <button class="t" data-cat="pdf" data-t="split"><span class="i">✂️</span><b>Split PDF</b><small>page by page</small></button>
+    <button class="t" data-cat="pdf" data-t="cpdf"><span class="i">🗜️</span><b>Compress PDF</b><small>smaller file</small></button>
+    <button class="t" data-cat="pdf" data-t="rot"><span class="i">🔄</span><b>Rotate PDF</b><small>turn 90°</small></button>
+    <button class="t" data-cat="ocr" data-t="ocr"><span class="i">🔎</span><b>Read text (OCR)</b><small>Arabic · English</small></button>
   </div>
   <div id="ocrOpts" hidden>
     <label for="ocrLang">Language in the picture:</label>
@@ -348,11 +376,11 @@ const kindOf=n=>{n=n.toLowerCase();
 
 function newRow(name){
   const li=document.createElement('li');
-  li.innerHTML=`<div class="name"><div></div><small>Reading…</small><div class="bar"><i></i></div></div>`;
+  li.innerHTML=`<div class="name"><div></div><small>${tr('Reading…')}</small><div class="bar"><i></i></div></div>`;
   li.querySelector('.name div').textContent=name;
   list.appendChild(li);actions.hidden=false;return li;
 }
-const fail=(li,err)=>{console.error(err);li.classList.add('fail');li.querySelector('small').textContent='Failed: '+(err.message||err)};
+const fail=(li,err)=>{console.error(err);li.classList.add('fail');li.querySelector('small').textContent=tr('Failed: ')+(err.message||err)};
 
 async function handle(files){
   if(target==='merge'){
@@ -388,7 +416,7 @@ function finish(li,blob,name,label,warn){
     small.after(w);
   }
   const acts=document.createElement('div');acts.className='acts';
-  const a=document.createElement('a');a.className='btn';a.href=URL.createObjectURL(blob);a.download=name;a.textContent='Download';
+  const a=document.createElement('a');a.className='btn';a.href=URL.createObjectURL(blob);a.download=name;a.textContent=tr('Download');
   acts.appendChild(a);
   const file=new File([blob],name,{type});
   let canShare=false;try{canShare=!!(navigator.canShare&&navigator.canShare({files:[file]}))}catch(e){}
@@ -396,10 +424,10 @@ function finish(li,blob,name,label,warn){
   const touch=matchMedia('(pointer:coarse)').matches;
   if(touch){
     // Phones: Download = normal browser download (goes to the Downloads folder, no Files app needed)
-    const o=document.createElement('a');o.className='btn';o.href=a.href;o.target='_blank';o.rel='noopener';o.textContent='Open';
+    const o=document.createElement('a');o.className='btn';o.href=a.href;o.target='_blank';o.rel='noopener';o.textContent=tr('Open');
     acts.appendChild(o);
     if(canShare){
-      const s=document.createElement('a');s.className='btn';s.href='#';s.setAttribute('role','button');s.textContent='Share';
+      const s=document.createElement('a');s.className='btn';s.href='#';s.setAttribute('role','button');s.textContent=tr('Share');
       s.onclick=e=>{e.preventDefault();navigator.share({files:[file],title:name}).catch(()=>{})};
       acts.appendChild(s);
     }
@@ -414,6 +442,82 @@ function loadImg(file){return new Promise((res,rej)=>{
     const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0);URL.revokeObjectURL(u);
     res({src:c.toDataURL('image/jpeg',.92),w:c.width,h:c.height})};
   im.onerror=()=>rej(new Error('Could not read image'));im.src=u})}
+
+/* ---- Tabs: show only the buttons of the chosen group ---- */
+function showCat(cat){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.cat===cat));
+  const btns=[...document.querySelectorAll('#targets .t')];
+  btns.forEach(b=>{b.hidden=b.dataset.cat!==cat});
+  if(!btns.some(b=>!b.hidden&&b.classList.contains('on'))){const first=btns.find(b=>!b.hidden);if(first)first.click()}
+  $('#ocrOpts').hidden=(target!=='ocr');
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>showCat(b.dataset.cat));
+
+/* ---- Languages: English, Arabic, Kurdish (Sorani), with right-to-left layout ---- */
+const I18N={
+ ar:{
+  '↻ Refresh':'↻ تحديث','Documents':'المستندات','Photos':'الصور','PDF tools':'أدوات PDF','Read text':'قراءة النص',
+  '1 · Choose what to do':'١ · اختر ما تريد فعله','2 · Add files':'٢ · أضف الملفات',
+  'PDF, Word, Excel, PowerPoint, Text, HTML, CSV and images, convert between them, merge and split PDFs. Everything runs in your browser, your files are never uploaded.':'PDF وWord وExcel وPowerPoint ونص وHTML وCSV وصور: حوّل بينها، وادمج ملفات PDF أو قسّمها. كل شيء يعمل داخل متصفحك ولا يتم رفع ملفاتك أبداً.',
+  'Word':'وورد','Excel':'إكسل','PowerPoint':'باوربوينت','Text':'نص',
+  'Photo → PDF':'صورة → PDF','Photo → Word':'صورة → وورد','Photo → Slides':'صورة → شرائح',
+  'Shrink photo':'تصغير الصورة','Merge PDF':'دمج PDF','Split PDF':'تقسيم PDF','Compress PDF':'ضغط PDF','Rotate PDF':'تدوير PDF',
+  'Read text (OCR)':'قراءة النص (OCR)',
+  'PDF / photo':'PDF / صورة','smaller file':'ملف أصغر','turn 90°':'تدوير 90°','smaller size':'حجم أصغر',
+  'pictures to PDF':'صور إلى PDF','pictures to .docx':'صور إلى docx','pictures to .pptx':'صور إلى pptx',
+  'many → one':'عدة ملفات في واحد','page by page':'صفحة بصفحة','Arabic · English':'العربية · الإنجليزية',
+  'Drop files here':'أفلت الملفات هنا',
+  'PDF · Word · Excel · PowerPoint · TXT · HTML · CSV · JPG/PNG, several at once is fine. Photos: choose PDF, PowerPoint or Word, several photos become one file.':'PDF · Word · Excel · PowerPoint · TXT · HTML · CSV · JPG/PNG، يمكنك إضافة عدة ملفات معاً. الصور: اختر PDF أو PowerPoint أو Word وستصبح عدة صور ملفاً واحداً.',
+  'Clear':'مسح',
+  'Language in the picture:':'اللغة في الصورة:',
+  'Auto (Arabic or English)':'تلقائي (عربي أو إنجليزي)','Arabic only':'العربية فقط','Arabic + English mixed in one picture':'عربي + إنجليزي معاً في صورة واحدة','English only':'الإنجليزية فقط',
+  'Kurdish Sorani (Arabic script, کوردی)':'الكردية السورانية (بالحروف العربية)','Kurdish Kurmanji (Latin script) + English':'الكردية الكرمانجية (بالحروف اللاتينية) + إنجليزي',
+  'Download':'تحميل','Open':'فتح','Share':'مشاركة','Download Word':'تحميل Word','Download .txt':'تحميل txt','Copy':'نسخ','Copied ✓':'تم النسخ ✓',
+  'Reading…':'جارٍ القراءة…','Failed: ':'فشل: ',
+  'Text found ({n} characters). Fix anything below, then export.':'تم العثور على النص ({n} حرفاً). صحّح ما تريد أدناه ثم صدّره.'
+ },
+ ku:{
+  '↻ Refresh':'↻ نوێکردنەوە','Documents':'بەڵگەنامەکان','Photos':'وێنەکان','PDF tools':'ئامرازەکانی PDF','Read text':'خوێندنەوەی دەق',
+  '1 · Choose what to do':'١ · هەڵبژێرە چی بکەیت','2 · Add files':'٢ · فایلەکان زیاد بکە',
+  'PDF, Word, Excel, PowerPoint, Text, HTML, CSV and images, convert between them, merge and split PDFs. Everything runs in your browser, your files are never uploaded.':'PDF، Word، Excel، PowerPoint، دەق، HTML، CSV و وێنە: بیانگۆڕە بۆ یەکتر، PDF تێکەڵ بکە یان دابەشی بکە. هەموو شتێک لە ناو وێبگەڕەکەتدا کار دەکات و فایلەکانت هەرگیز نانێردرێن.',
+  'Word':'وۆرد','Excel':'ئێکسڵ','PowerPoint':'پاوەرپۆینت','Text':'دەق',
+  'Photo → PDF':'وێنە → PDF','Photo → Word':'وێنە → وۆرد','Photo → Slides':'وێنە → سلایدەکان',
+  'Shrink photo':'پچووککردنەوەی وێنە','Merge PDF':'تێکەڵکردنی PDF','Split PDF':'دابەشکردنی PDF','Compress PDF':'پچووککردنەوەی PDF','Rotate PDF':'سوڕاندنی PDF',
+  'Read text (OCR)':'خوێندنەوەی دەق (OCR)',
+  'PDF / photo':'PDF / وێنە','smaller file':'فایلی بچووکتر','turn 90°':'سوڕاندن ٩٠°','smaller size':'قەبارەی بچووکتر',
+  'pictures to PDF':'وێنە بۆ PDF','pictures to .docx':'وێنە بۆ docx','pictures to .pptx':'وێنە بۆ pptx',
+  'many → one':'چەند فایل بۆ یەک','page by page':'لاپەڕە بە لاپەڕە','Arabic · English':'عەرەبی · ئینگلیزی',
+  'Drop files here':'فایلەکان لێرە دابنێ',
+  'PDF · Word · Excel · PowerPoint · TXT · HTML · CSV · JPG/PNG, several at once is fine. Photos: choose PDF, PowerPoint or Word, several photos become one file.':'PDF · Word · Excel · PowerPoint · TXT · HTML · CSV · JPG/PNG، دەتوانیت چەند فایلێک پێکەوە دابنێیت. وێنەکان: PDF یان PowerPoint یان Word هەڵبژێرە و چەند وێنەیەک دەبنە یەک فایل.',
+  'Clear':'پاککردنەوە',
+  'Language in the picture:':'زمانی ناو وێنەکە:',
+  'Auto (Arabic or English)':'خۆکار (عەرەبی یان ئینگلیزی)','Arabic only':'تەنها عەرەبی','Arabic + English mixed in one picture':'عەرەبی + ئینگلیزی تێکەڵ لە یەک وێنەدا','English only':'تەنها ئینگلیزی',
+  'Kurdish Sorani (Arabic script, کوردی)':'کوردی سۆرانی (بە پیتی عەرەبی)','Kurdish Kurmanji (Latin script) + English':'کوردی کرمانجی (بە پیتی لاتینی) + ئینگلیزی',
+  'Download':'داگرتن','Open':'کردنەوە','Share':'هاوبەشکردن','Download Word':'داگرتنی Word','Download .txt':'داگرتنی txt','Copy':'کۆپی','Copied ✓':'کۆپی کرا ✓',
+  'Reading…':'خوێندنەوە…','Failed: ':'شکستی هێنا: ',
+  'Text found ({n} characters). Fix anything below, then export.':'دەق دۆزرایەوە ({n} پیت). هەرچییەک هەڵەیە لە خوارەوە ڕاستی بکەرەوە، پاشان هەناردەی بکە.'
+ }
+};
+let LANG='en';
+const tr=(s,v)=>{let t=(LANG!=='en'&&I18N[LANG]&&I18N[LANG][s])||s;if(v)for(const k in v)t=t.replace('{'+k+'}',v[k]);return t};
+const I18N_EL=[...document.querySelectorAll('#designs button, #tabs button span, .label, p.sub, #drop b, #drop > span, #clear, #ocrOpts label, #ocrOpts option, #targets .t b, #targets .t small')];
+I18N_EL.forEach(el=>{el.dataset.en=el.textContent.trim();if(el.dataset.en.startsWith('.'))el.dir='ltr'});   // ".docx" stays left-to-right
+function applyLang(l){
+  LANG=l;
+  document.documentElement.lang=l==='ku'?'ckb':l;
+  document.documentElement.dir=l==='en'?'ltr':'rtl';
+  I18N_EL.forEach(el=>{el.textContent=tr(el.dataset.en)});
+  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+  try{localStorage.setItem('conv-lang',l)}catch(e){}
+}
+document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>applyLang(b.dataset.l));
+{
+  let l='en';
+  try{l=localStorage.getItem('conv-lang')||''}catch(e){}
+  if(!l){const n=(navigator.language||'en').toLowerCase();l=n.startsWith('ar')?'ar':(n.startsWith('ku')||n.startsWith('ckb'))?'ku':'en'}
+  applyLang(l);
+}
+showCat('docs');
 
 /* ---- OCR: read Arabic / English text from photos and scanned PDFs, in the browser ---- */
 document.querySelectorAll('.t').forEach(b=>b.addEventListener('click',()=>{$('#ocrOpts').hidden=(target!=='ocr')}));
@@ -505,17 +609,17 @@ async function ocrDocx(text){
 function showOcrResult(li,file,text){
   try{window.heroBurst&&window.heroBurst()}catch(e){}
   li.classList.add('done');li.querySelector('.bar i').style.width='100%';
-  li.querySelector('small').textContent=`Text found (${text.length} characters). Fix anything below, then export.`;
+  li.querySelector('small').textContent=tr('Text found ({n} characters). Fix anything below, then export.',{n:text.length});
   const box=document.createElement('div');box.className='ocrbox';
   const ta=document.createElement('textarea');ta.value=text;ta.dir='auto';ta.spellcheck=false;
   const acts=document.createElement('div');acts.className='acts';
   const mk=(label,fn)=>{const a=document.createElement('a');a.className='btn';a.href='#';a.setAttribute('role','button');a.textContent=label;
     a.onclick=async e=>{e.preventDefault();await fn(a)};acts.appendChild(a)};
-  mk('Download Word',async()=>downloadBlob(await ocrDocx(ta.value),baseName(file)+'.docx'));
-  mk('Download .txt',async()=>downloadBlob(new Blob([ta.value],{type:'text/plain;charset=utf-8'}),baseName(file)+'.txt'));
-  mk('Copy',async a=>{
+  mk(tr('Download Word'),async()=>downloadBlob(await ocrDocx(ta.value),baseName(file)+'.docx'));
+  mk(tr('Download .txt'),async()=>downloadBlob(new Blob([ta.value],{type:'text/plain;charset=utf-8'}),baseName(file)+'.txt'));
+  mk(tr('Copy'),async a=>{
     try{await navigator.clipboard.writeText(ta.value)}catch(e){ta.select();document.execCommand('copy')}
-    a.textContent='Copied ✓';setTimeout(()=>a.textContent='Copy',1500);
+    a.textContent=tr('Copied ✓');setTimeout(()=>a.textContent=tr('Copy'),1500);
   });
   box.append(ta,acts);li.appendChild(box);
 }
@@ -987,15 +1091,19 @@ writers.pptx=async model=>{
   const C={ink:'1E1B4B',body:'374151',acc:'7C3AED',cyan:'06B6D4',head:'4C1D95',zebra:'F3F0FF',line:'E2E8F0'};
   const F='Calibri',X=.7,W=8.6,LIM=5.15,noLine={type:'none'};
 
+  const docTitle=(model.title||'Presentation').replace(/[_-]+/g,' ').trim();
   pres.defineSlideMaster({title:'PHOTO',background:{color:'000000'}});
+  pres.defineSlideMaster({title:'COVER',background:{color:'0B0820'}});
   pres.defineSlideMaster({title:'CONTENT',background:{color:'F8FAFC'},
-    objects:[{rect:{x:0,y:0,w:.18,h:5.625,fill:{color:C.acc}}},{rect:{x:.18,y:5.55,w:9.82,h:.075,fill:{color:C.cyan}}}]});
+    objects:[{rect:{x:0,y:0,w:.18,h:5.625,fill:{color:C.acc}}},{rect:{x:.18,y:5.55,w:9.82,h:.075,fill:{color:C.cyan}}}],
+    slideNumber:{x:9.0,y:5.2,w:.7,h:.3,fontFace:F,fontSize:10,color:'94A3B8',align:'right'}});
 
   // a styled slide; the title is only the source's own first heading (if there is one)
   const slide=title=>{
     const s=pres.addSlide({masterName:'CONTENT'});
     s.addShape(pres.ShapeType.ellipse,{x:8.0,y:-1.4,w:3.6,h:3.6,fill:{color:C.acc,transparency:90},line:noLine});
     s.addShape(pres.ShapeType.ellipse,{x:-1.2,y:4.3,w:2.8,h:2.8,fill:{color:C.cyan,transparency:92},line:noLine});
+    s.addText(docTitle,{x:X,y:5.2,w:6,h:.3,fontFace:F,fontSize:10,color:'94A3B8',fit:'shrink'});
     let y=.5;
     if(title){
       s.addText(title,{x:X,y:.35,w:W,h:.8,fontFace:F,fontSize:title.length>60?22:title.length>40?26:30,bold:true,color:C.ink,valign:'middle',fit:'shrink'});
@@ -1009,6 +1117,32 @@ writers.pptx=async model=>{
   const splitLong=t=>{const out=[];while(t.length>1300){let k=t.lastIndexOf('. ',1200);if(k<600)k=t.lastIndexOf(' ',1200);if(k<1)k=1200;out.push(t.slice(0,k+1));t=t.slice(k+1).replace(/^\s+/,'')}out.push(t);return out};
   const est=(items,fs)=>items.reduce((h,t)=>h+Math.ceil(t.length/(1300/fs))*fs*1.22/72+.12,0);
   const pickFs=(items,room)=>{for(const fs of [22,20,18,16,14,12])if(est(items,fs)<=room)return fs;return 14};
+
+  const textual=sec=>sec.blocks.length&&!sec.blocks.every(b=>b.t==='img');
+  // cover slide
+  if(model.some(textual)){
+    const s=pres.addSlide({masterName:'COVER'});
+    s.addShape(pres.ShapeType.ellipse,{x:-1.8,y:-2.4,w:6,h:6,fill:{color:'7C3AED',transparency:62},line:noLine});
+    s.addShape(pres.ShapeType.ellipse,{x:6.8,y:3.0,w:5.4,h:5.4,fill:{color:'06B6D4',transparency:70},line:noLine});
+    s.addShape(pres.ShapeType.ellipse,{x:8.3,y:.4,w:1.2,h:1.2,fill:{color:'67E8F9',transparency:80},line:noLine});
+    s.addText(docTitle,{x:.8,y:1.4,w:8.4,h:1.9,fontFace:F,fontSize:docTitle.length>40?32:46,bold:true,color:'FFFFFF',valign:'bottom',fit:'shrink'});
+    s.addShape(pres.ShapeType.rect,{x:.8,y:3.5,w:1.2,h:.07,fill:{color:'67E8F9'},line:noLine});
+    s.addText(new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}),{x:.8,y:3.7,w:8,h:.4,fontFace:F,fontSize:16,color:'C4B5FD'});
+  }
+
+  // agenda slide (only when sections have real titles)
+  const secTitle=sec=>{const h=sec.blocks.find(b=>b.t==='h');return (h&&h.x)||sec.name};
+  const agenda=model.filter(textual).map(secTitle);
+  const named=agenda.filter(t=>!/^(page|slide|sheet)\s*\d+$/i.test(t)).length;
+  if(agenda.length>=3&&agenda.length<=8&&named>=agenda.length/2){
+    const {s}=slide('Agenda');
+    agenda.forEach((t,i)=>{
+      const yy=1.55+i*.46;
+      s.addShape(pres.ShapeType.ellipse,{x:X,y:yy,w:.36,h:.36,fill:{color:C.acc},line:noLine});
+      s.addText(String(i+1),{x:X,y:yy,w:.36,h:.36,fontFace:F,fontSize:12,bold:true,color:'FFFFFF',align:'center',valign:'middle'});
+      s.addText(t,{x:X+.55,y:yy-.04,w:W-.6,h:.44,fontFace:F,fontSize:18,color:C.ink,valign:'middle',fit:'shrink'});
+    });
+  }
 
   model.forEach(sec=>{
     if(!sec.blocks.length)return;
@@ -1079,191 +1213,25 @@ writers.pptx=async model=>{
       i++;
     }
   });
-  return pres.write({outputType:'blob'});
-};
-
-/* ============ Shared designed theme (Word, PDF, HTML match the PowerPoint look) ============ */
-const THEME={ink:'1E1B4B',body:'374151',acc:'7C3AED',head:'4C1D95',zebra:'F3F0FF',line:'E2E8F0',mute:'94A3B8',dark:'0B0820',cyan:'67E8F9',lav:'C4B5FD'};
-const docTitleOf=m=>(m.title||'Document').replace(/[_-]+/g,' ').trim();
-const todayStr=()=>new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-const isBullet=t=>/^[•●▪◦\-–*]\s+/.test(t);
-const stripB=t=>t.replace(/^[•●▪◦\-–*]\s+/,'');
-const photoOnly=s=>s.blocks.length>0&&s.blocks.every(b=>b.t==='img');
-const hasTextContent=m=>m.some(s=>s.blocks.length&&!photoOnly(s));
-
-// ---- Word (designed: cover page, accent rule, page numbers, bullets, striped tables)
-writers.docx=async model=>{
-  const {Document,Packer,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,WidthType,ShadingType,BorderStyle,PageBreak,ImageRun,Header,Footer,PageNumber,AlignmentType}=docx;
-  const T=THEME,title=docTitleOf(model),font='Calibri';
-  const H={1:HeadingLevel.HEADING_1,2:HeadingLevel.HEADING_2,3:HeadingLevel.HEADING_3};
-  const hs={1:{size:44,color:T.ink},2:{size:34,color:T.head},3:{size:28,color:T.acc}};
-  const cover=hasTextContent(model),ch=[];
-  if(cover){
-    ch.push(new Paragraph({spacing:{before:3400},children:[]}));
-    ch.push(new Paragraph({spacing:{after:240},children:[new TextRun({text:title,bold:true,size:title.length>40?56:76,color:T.ink,font})]}));
-    ch.push(new Paragraph({spacing:{after:320},indent:{right:7800},border:{bottom:{style:BorderStyle.SINGLE,size:30,color:T.acc,space:4}},children:[]}));
-    ch.push(new Paragraph({children:[new TextRun({text:todayStr(),size:30,color:T.acc,font})]}));
-    ch.push(new Paragraph({children:[new PageBreak()]}));
+  // closing slide
+  if(model.some(textual)){
+    const s=pres.addSlide({masterName:'COVER'});
+    s.addShape(pres.ShapeType.ellipse,{x:6.5,y:-2,w:5.5,h:5.5,fill:{color:'06B6D4',transparency:72},line:noLine});
+    s.addShape(pres.ShapeType.ellipse,{x:-1.8,y:3.2,w:5,h:5,fill:{color:'7C3AED',transparency:65},line:noLine});
+    s.addText('Thank you',{x:.8,y:1.9,w:8.4,h:1.2,fontFace:F,fontSize:48,bold:true,color:'FFFFFF',valign:'middle'});
+    s.addShape(pres.ShapeType.rect,{x:.8,y:3.2,w:1.2,h:.07,fill:{color:'67E8F9'},line:noLine});
+    s.addText(docTitle,{x:.8,y:3.4,w:8,h:.5,fontFace:F,fontSize:18,color:'C4B5FD',fit:'shrink'});
   }
-  const bd={style:BorderStyle.SINGLE,size:4,color:T.line};
-  const borders={top:bd,bottom:bd,left:bd,right:bd};
-  let firstSec=true;
-  model.forEach(s=>{
-    if(!s.blocks.length)return;
-    if(!firstSec)ch.push(new Paragraph({children:[new PageBreak()]}));
-    firstSec=false;
-    const photos=photoOnly(s);let k=0;
-    for(const b of s.blocks){
-      if(b.t==='h')ch.push(new Paragraph({heading:H[b.l],spacing:{before:120,after:160},children:[new TextRun({text:b.x,bold:true,size:hs[b.l].size,color:hs[b.l].color,font})]}));
-      else if(b.t==='p'){
-        const bl=isBullet(b.x);
-        ch.push(new Paragraph({bullet:bl?{level:0}:undefined,spacing:{after:bl?80:140},children:[new TextRun({text:bl?stripB(b.x):b.x,size:22,color:T.body,font})]}));
-      }
-      else if(b.t==='img'){
-        const w=Math.min(600,b.w),h=Math.round(b.h*w/b.w),mh=860;
-        const [fw,fh]=h>mh?[Math.round(b.w*mh/b.h),mh]:[w,h];
-        ch.push(new Paragraph({alignment:AlignmentType.CENTER,pageBreakBefore:photos&&k>0,children:[new ImageRun({data:Uint8Array.from(atob(b.src.split(',')[1]),c=>c.charCodeAt(0)),transformation:{width:fw,height:fh}})]}));
-        k++;
-      }
-      else if(b.t==='tbl'){
-        const rows=norm(b.rows);
-        ch.push(new Table({width:{size:100,type:WidthType.PERCENTAGE},
-          rows:rows.map((r,ri)=>new TableRow({tableHeader:ri===0,cantSplit:true,children:r.map(c=>new TableCell({
-            borders,margins:{top:60,bottom:60,left:100,right:100},
-            shading:{type:ShadingType.CLEAR,color:'auto',fill:ri===0?T.head:(ri%2?'FFFFFF':T.zebra)},
-            children:[new Paragraph({children:[new TextRun({text:String(c),bold:ri===0,size:20,color:ri===0?'FFFFFF':T.body,font})]})]}))}))}));
-        ch.push(new Paragraph({spacing:{after:120},children:[]}));
-      }
-    }
-  });
-  const ruleHeader=()=>new Header({children:[new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:18,color:T.acc,space:4}},children:[new TextRun({text:title,size:18,color:T.mute,font})]})]});
-  const numFooter=()=>new Footer({children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({children:[PageNumber.CURRENT],size:18,color:T.mute,font})]})]});
-  const sec={properties:{titlePage:cover},headers:{default:ruleHeader()},footers:{default:numFooter()},children:ch};
-  if(cover){sec.headers.first=new Header({children:[new Paragraph('')]});sec.footers.first=new Footer({children:[new Paragraph('')]})}
-  return Packer.toBlob(new Document({styles:{default:{document:{run:{font,size:22,color:T.body}}}},sections:[sec]}));
+  // effect: a soft fade transition between every slide
+  const raw=await pres.write({outputType:'arraybuffer'});
+  const zip=await JSZip.loadAsync(raw);
+  for(const n of Object.keys(zip.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n))){
+    const xml=await zip.file(n).async('string');
+    if(!xml.includes('<p:transition'))zip.file(n,xml.replace('</p:sld>','<p:transition spd="med"><p:fade/></p:transition></p:sld>'));
+  }
+  return zip.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
 };
 
-// ---- PDF (designed: cover page, accent stripe, page numbers, bullets, striped tables, full-page photos)
-writers.pdf=async model=>{
-  const d=new jspdf.jsPDF({unit:'pt',format:'a4'}),T=THEME;
-  const rgb=h=>[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
-  const fillC=h=>d.setFillColor(...rgb(h)),textC=h=>d.setTextColor(...rgb(h)),drawC=h=>d.setDrawColor(...rgb(h));
-  const W=595,Hh=842,M=54,mw=W-2*M-4,kinds=[];let y=M,firstPage=true;
-  const newPage=kind=>{
-    if(firstPage)firstPage=false;else d.addPage();
-    kinds.push(kind);y=M;
-    if(kind==='content'){fillC(T.acc);d.rect(0,0,12,Hh,'F')}
-    if(kind==='photo'){fillC('000000');d.rect(0,0,W,Hh,'F')}
-  };
-  const need=h=>{if(y+h>Hh-M-8)newPage('content')};
-  if(hasTextContent(model)){
-    newPage('cover');
-    fillC(T.dark);d.rect(0,0,W,Hh,'F');
-    try{
-      d.setGState(new d.GState({opacity:.35}));fillC(T.acc);d.circle(40,60,240,'F');
-      d.setGState(new d.GState({opacity:.3}));fillC('06B6D4');d.circle(590,830,210,'F');
-      d.setGState(new d.GState({opacity:1}));
-    }catch(e){}
-    const title=docTitleOf(model),fs=title.length>40?30:42;
-    d.setFont('helvetica','bold');d.setFontSize(fs);textC('FFFFFF');
-    let cy=290;
-    for(const ln of d.splitTextToSize(title,W-144)){d.text(ln,72,cy);cy+=fs*1.2}
-    fillC(T.cyan);d.rect(72,cy+6,70,5,'F');
-    d.setFont('helvetica','normal');d.setFontSize(14);textC(T.lav);d.text(todayStr(),72,cy+44);
-  }
-  model.forEach(s=>{
-    if(!s.blocks.length)return;
-    if(photoOnly(s)){
-      for(const b of s.blocks){
-        newPage('photo');
-        const r=Math.min(W/b.w,Hh/b.h),w=b.w*r,h=b.h*r;
-        d.addImage(b.src,'JPEG',(W-w)/2,(Hh-h)/2,w,h);
-      }
-      return;
-    }
-    newPage('content');
-    for(const b of s.blocks){
-      if(b.t==='h'){
-        const size=[0,24,18,14][b.l];
-        d.setFont('helvetica','bold');d.setFontSize(size);textC(b.l===1?T.ink:b.l===2?T.head:T.acc);
-        for(const ln of d.splitTextToSize(b.x,mw)){need(size*1.4);y+=size;d.text(ln,M,y);y+=size*.35}
-        if(b.l===1){fillC(T.acc);d.rect(M,y+3,44,3,'F');y+=8}
-        y+=8;
-      }else if(b.t==='p'){
-        const bl=isBullet(b.x),ind=bl?16:0;
-        d.setFont('helvetica','normal');d.setFontSize(11);textC(T.body);
-        let first=true;
-        for(const ln of d.splitTextToSize(bl?stripB(b.x):b.x,mw-ind)){
-          need(15);y+=11;
-          if(bl&&first){fillC(T.acc);d.circle(M+4,y-3.5,2.2,'F');textC(T.body)}
-          first=false;d.text(ln,M+ind,y);y+=4;
-        }
-        y+=bl?3:6;
-      }else if(b.t==='img'){
-        let w=mw,h=b.h*w/b.w;const maxH=Hh-2*M-8;
-        if(h>maxH){h=maxH;w=b.w*h/b.h}
-        need(h);d.addImage(b.src,'JPEG',M,y,w,h);y+=h+10;
-      }else if(b.t==='tbl'){
-        const rows=norm(b.rows),cols=rows[0].length,cw=mw/cols;
-        d.setFontSize(9);drawC(T.line);d.setLineWidth(.5);
-        rows.forEach((r,ri)=>{
-          d.setFont('helvetica',ri===0?'bold':'normal');
-          const cells=r.map(c=>d.splitTextToSize(String(c),cw-10));
-          const rh=Math.max(...cells.map(c=>c.length))*11+10;
-          need(rh);
-          cells.forEach((c,i)=>{
-            fillC(ri===0?T.head:(ri%2?'FFFFFF':T.zebra));d.rect(M+i*cw,y,cw,rh,'FD');
-            textC(ri===0?'FFFFFF':T.body);d.text(c,M+i*cw+5,y+13);
-          });
-          y+=rh;
-        });
-        y+=14;
-      }
-    }
-  });
-  const n=d.getNumberOfPages();
-  for(let i=1;i<=n;i++){
-    if(kinds[i-1]!=='content')continue;
-    d.setPage(i);d.setFont('helvetica','normal');d.setFontSize(9);textC(T.mute);d.text(String(i),W-M,Hh-26,{align:'right'});
-  }
-  return d.output('blob');
-};
-
-// ---- HTML (designed: cover header, accent stripe, section numbers, bullet lists, striped tables, full-width photos)
-writers.html=async model=>{
-  const T=THEME,e=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const title=docTitleOf(model),secs=model.filter(s=>s.blocks.length);
-  const render=blocks=>{
-    let out='',ul=[];
-    const fl=()=>{if(ul.length){out+='<ul>'+ul.map(t=>`<li>${e(t)}</li>`).join('')+'</ul>';ul=[]}};
-    for(const b of blocks){
-      if(b.t==='p'&&isBullet(b.x)){ul.push(stripB(b.x));continue}
-      fl();
-      if(b.t==='h')out+=`<h${b.l}>${e(b.x)}</h${b.l}>`;
-      else if(b.t==='p')out+=`<p>${e(b.x)}</p>`;
-      else if(b.t==='tbl'){const rows=norm(b.rows);out+='<div class="tw"><table>'+rows.map((r,ri)=>'<tr>'+r.map(c=>ri===0?`<th>${e(c)}</th>`:`<td>${e(c)}</td>`).join('')+'</tr>').join('')+'</table></div>'}
-      else if(b.t==='img')out+=`<img src="${b.src}" alt="">`;
-    }
-    fl();return out;
-  };
-  const body=secs.map((s,i)=>photoOnly(s)
-    ?`<section class="photo">${s.blocks.map(b=>`<img src="${b.src}" alt="">`).join('')}</section>`
-    :`<section><span class="no">${i+1}</span>${render(s.blocks)}</section>`).join('\n');
-  const cover=hasTextContent(model)?`<header class="cover"><h1>${e(title)}</h1><i></i><p>${todayStr()}</p></header>`:'';
-  const css=`:root{--ink:#${T.ink};--body:#${T.body};--acc:#${T.acc};--head:#${T.head};--zebra:#${T.zebra};--line:#${T.line};--mute:#${T.mute}}
-*{box-sizing:border-box}body{margin:0;background:#f8fafc;color:var(--body);font:16px/1.65 'Segoe UI',Calibri,system-ui,sans-serif}
-.cover{background:radial-gradient(circle at 12% 0,#${T.acc}88,transparent 55%),radial-gradient(circle at 100% 100%,#06b6d488,transparent 50%),#${T.dark};color:#fff;padding:96px max(24px,calc(50% - 400px)) 80px}
-.cover h1{font-size:clamp(32px,6vw,56px);line-height:1.1;margin:0 0 20px;color:#fff}.cover i{display:block;width:72px;height:5px;background:#${T.cyan};margin-bottom:18px}.cover p{margin:0;color:#${T.lav};font-size:18px}
-section{max-width:800px;margin:28px auto;background:#fff;border-left:8px solid var(--acc);border-radius:0 12px 12px 0;padding:36px 40px;position:relative;box-shadow:0 2px 14px rgba(30,27,75,.07)}
-.no{position:absolute;right:16px;bottom:10px;font-size:12px;color:var(--mute)}
-h1,h2,h3{line-height:1.25;margin:1.2em 0 .5em}section>:first-child{margin-top:0}h1{color:var(--ink);font-size:30px}h1:after{content:"";display:block;width:44px;height:3px;background:var(--acc);margin-top:8px}h2{color:var(--head);font-size:24px}h3{color:var(--acc);font-size:19px}
-ul{padding-left:1.2em}li{margin:.3em 0}li::marker{color:var(--acc)}
-.tw{overflow-x:auto;margin:18px 0}table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:8px 12px;text-align:left}th{background:var(--head);color:#fff}tr:nth-child(even) td{background:var(--zebra)}
-img{display:block;max-width:100%;height:auto;margin:16px auto;border-radius:6px}section.photo{background:#000;border-left-color:#000;padding:0}section.photo img{margin:0 auto;border-radius:0}
-@media(max-width:600px){section{padding:24px 18px;margin:14px 0}}`;
-  const html=`<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(title)}</title>\n<style>${css}</style></head>\n<body>\n${cover}\n${body}\n</body></html>`;
-  return new Blob([html],{type:'text/html;charset=utf-8'});
-};
 </script>
 </body>
 </html>
